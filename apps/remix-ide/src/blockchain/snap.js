@@ -18,6 +18,13 @@ export const isFlask = async () => {
   }
 }
 
+export const getChainId = () => {
+  return window.ethereum.request({
+    method: 'eth_chainId',
+    params: []
+  })
+}
+
 export const getSnaps = async (provider) =>
   await (provider ?? window.ethereum).request({
     method: 'wallet_getSnaps'

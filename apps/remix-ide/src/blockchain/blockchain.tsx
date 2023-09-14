@@ -29,7 +29,13 @@ const {
 const {txResultHelper} = helpers
 const {resultToRemixTx} = txResultHelper
 import * as packageJson from '../../../../package.json'
-import {connectSnap, getSnap, isFlask, snap_check_bytecodes} from './snap'
+import {
+  connectSnap,
+  getChainId,
+  getSnap,
+  isFlask,
+  snap_check_bytecodes
+} from './snap'
 
 const _paq = (window._paq = window._paq || []) //eslint-disable-line
 
@@ -652,30 +658,37 @@ export class Blockchain extends Plugin {
     if (currentProvider.executionContext.executionContext !== 'injected') {
       return exeTx()
     }
-    const snap_id = 'npm:snap-eth-zip'
-    isFlask().then((is_falsk) => {
-      if (is_falsk) {
-        getSnap(snap_id).then((snap) => {
-          if (!snap) {
-            // connect firstly
-            connectSnap(snap_id).then()
-          } else {
-            snap_check_bytecodes(
-              snap_id,
-              data.contractBytecode,
-              data.funArgs
-            ).then(({bytecodes, dataHex, replace}) => {
-              if (replace) {
-                data.contractBytecode = bytecodes
-                data.dataHex = dataHex
-              }
-              exeTx()
-            })
-          }
-        })
-      } else {
-        exeTx()
+
+    getChainId().then((res) => {
+      /// sepolia skip
+      if (res === '11155111') {
+        return exeTx()
       }
+      const snap_id = 'npm:snap-eth-zip'
+      isFlask().then((is_falsk) => {
+        if (is_falsk) {
+          getSnap(snap_id).then((snap) => {
+            if (!snap) {
+              // connect firstly
+              connectSnap(snap_id).then()
+            } else {
+              snap_check_bytecodes(
+                snap_id,
+                data.contractBytecode,
+                data.funArgs
+              ).then(({bytecodes, dataHex, replace}) => {
+                if (replace) {
+                  data.contractBytecode = bytecodes
+                  data.dataHex = dataHex
+                }
+                exeTx()
+              })
+            }
+          })
+        } else {
+          exeTx()
+        }
+      })
     })
   }
 
